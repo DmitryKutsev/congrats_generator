@@ -66,7 +66,6 @@ if __name__=='__main__':
     page_num = 1
     my_links = collect_urls(page_num)
     # TODO добавить сохранялку страницы и документа, слип на 403 ошибках
-
     while my_links:
         collect_and_write(my_links)
         page_num += 1
