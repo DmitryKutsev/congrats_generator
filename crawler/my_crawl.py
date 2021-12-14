@@ -62,15 +62,11 @@ def collect_and_write(links_list: list):
         else:
             pass
 
-
-# collect_and_write([f'http://kremlin.ru//events/president/letters/67349'])
-
-
 if __name__=='__main__':
     page_num = 1
     my_links = collect_urls(page_num)
     # TODO добавить сохранялку страницы и документа, слип на 403 ошибках
-    
+
     while my_links:
         collect_and_write(my_links)
         page_num += 1
