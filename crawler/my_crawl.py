@@ -1,4 +1,5 @@
 import csv
+import traceback
 import urllib
 from typing import Any
 from urllib.request import urlopen
@@ -27,43 +28,48 @@ def collect_urls(page_num: int) -> list:
     print(len(set(href_list)))
 
     return href_list
-# collect_urls(1)
 
-def write_in_table(title, content):
-    with open('congrats.csv', 'a', newline='') as csvfile:
-        my_writer = csv.writer(csvfile, delimiter='\t', quoting=csv.QUOTE_MINIMAL)
-        my_writer.writerow([content, title])
-        # for sentence in content.split('.'):
-        #     my_writer.writerow([sentence, title])
-
-
-
-def collect_texts(links: list) -> Any:
-    # http://kremlin.ru//events/president/letters/67349
-    letter = urlopen(f'http://kremlin.ru//events/president/letters/67349')
-    parced_letter = bs(letter, 'html.parser')
-    print(parced_letter.find('div', 'read__place p-location').text)
-    if parced_letter.find('div', 'read__place p-location').text == 'Поздравления':
-        # h1 class="entry-title p-name"
-        print(parced_letter.find('h1', 'entry-title p-name').text)
-        title = parced_letter.find('h1', 'entry-title p-name').text
-        print('\n\n')
-        print(parced_letter.find('div', 'entry-content e-content read__internal_content').text)
-        content = parced_letter.find('div', 'entry-content e-content read__internal_content').text
-        write_in_table(title, content)
-
-    else:
-        pass
+def write_txt(title: str, content: str):
+    """
+    Help function for collect_and_write().
+    Writes parced data in txt file separated by TITLE, CONTENT and END strings.
+    """
+    with open('congrats.txt', 'a') as my_handler:
+        my_handler.write('\nTITLE\n')
+        my_handler.write(title)
+        my_handler.write('\nCONTENT\n')
+        my_handler.write(content)
+        my_handler.write('\nEND\n')
 
 
-collect_texts([])
+def collect_and_write(links_list: list):
+    """
+    :param links_list: list with links to congrats texts and titles
+    """
+    for link in links_list:
+        letter = False
+        try:
+            letter = urlopen(link)
+        except urllib.error.HTTPError as err:
+            print(traceback.format_exc())
+            logging.error(err, )
+        if letter:
+            parced_letter = bs(letter, 'html.parser')
+            if parced_letter.find('div', 'read__place p-location').text == 'Поздравления':
+                title = parced_letter.find('h1', 'entry-title p-name').text
+                content = parced_letter.find('div', 'entry-content e-content read__internal_content').text
+                write_txt(title, content)
+        else:
+            pass
 
+if __name__=='__main__':
+    page_num = 1
+    my_links = collect_urls(page_num)
+    # TODO добавить сохранялку страницы и документа, слип на 403 ошибках
 
-# if __name__=='__main__':
-#     page_num = 1
-#     my_links = collect_urls(page_num)
-#
-#     while my_links:
-#         write_texts(my_links)
-#         page_num += 1
-#         my_links = collect_urls(page_num)
+    while my_links:
+        collect_and_write(my_links)
+        page_num += 1
+        my_links = collect_urls(page_num)
+        if page_num > 2:
+            break
