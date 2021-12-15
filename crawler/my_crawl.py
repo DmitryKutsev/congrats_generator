@@ -3,7 +3,6 @@ import json
 import traceback
 import urllib
 import time
-from typing import Any
 from urllib.request import urlopen
 from bs4 import BeautifulSoup as bs
 import logging
