@@ -22,7 +22,7 @@ def collect_urls(page_num: int) -> list:
         time.sleep(2)
     except urllib.error.HTTPError as err:
         logging.error(err)
-        return []
+        return collect_urls(page_num)
     parced_main = bs(pres_letters, 'html.parser')
     href_list = ['http://kremlin.ru/' + a['href'] for a in parced_main.find_all('a', href=True) if
                  'letters' in a['href'] and len(a['href'].split('/')) == 5]
@@ -74,12 +74,12 @@ def collect_and_write(links_list: list):
                 json.dump(curr_config, config_writer)
 
             parced_letter = bs(letter, 'html.parser')
-            if parced_letter.find('div', 'read__place p-location').text == 'Поздравления':
+            if parced_letter.find('div', 'read__place p-location') and \
+                    parced_letter.find('div', 'read__place p-location').text == 'Поздравления':
                 title = parced_letter.find('h1', 'entry-title p-name').text
                 content = parced_letter.find('div', 'entry-content e-content read__internal_content').text
                 write_txt(title, content)
-        else:
-            pass
+
 
 if __name__=='__main__':
 
@@ -97,5 +97,3 @@ if __name__=='__main__':
             json.dump(curr_config, config_writer)
 
         my_links = collect_urls(page_num)
-        if page_num > 2:
-            break
