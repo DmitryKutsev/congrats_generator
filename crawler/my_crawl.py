@@ -22,14 +22,14 @@ def collect_urls(page_num: int) -> list:
         time.sleep(2)
     except urllib.error.HTTPError as err:
         logging.error(err)
+        time.sleep(5)
         return collect_urls(page_num)
     parced_main = bs(pres_letters, 'html.parser')
     href_list = ['http://kremlin.ru/' + a['href'] for a in parced_main.find_all('a', href=True) if
                  'letters' in a['href'] and len(a['href'].split('/')) == 5]
-    print(href_list)
-    print(len(href_list))
-    print(len(set(href_list)))
 
+    logging.error(f'len of the list of links {len(href_list)}')
+    logging.error(f'len of the set of links {len(set(href_list))}')
     return href_list
 
 def write_txt(title: str, content: str):
@@ -64,7 +64,7 @@ def collect_and_write(links_list: list):
             time.sleep(2)
         except urllib.error.HTTPError as err:
             print(traceback.format_exc())
-            logging.error(err, )
+            logging.error(err)
 
         if letter:
             curr_config['last_index'] = index + start_from
@@ -87,8 +87,15 @@ if __name__=='__main__':
         curr_config = json.load(config_handler)
         page_num = curr_config['last_page']
 
+    with open('links.json') as links_handler:
+        links_storage = json.load(links_handler)
+
     my_links = collect_urls(page_num)
     while my_links:
+        links_storage["links"] += my_links
+        with open('links.json', 'w') as links_writer:
+            json.dump(links_storage["links"], links_writer)
+
         collect_and_write(my_links)
 
         curr_config['last_page'] += 1
