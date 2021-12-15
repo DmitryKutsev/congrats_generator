@@ -1,6 +1,8 @@
 import csv
+import json
 import traceback
 import urllib
+import time
 from typing import Any
 from urllib.request import urlopen
 from bs4 import BeautifulSoup as bs
@@ -17,6 +19,7 @@ def collect_urls(page_num: int) -> list:
     """
     try:
         pres_letters = urlopen(f'http://kremlin.ru/events/president/letters/page/{page_num}')
+        time.sleep(2)
     except urllib.error.HTTPError as err:
         logging.error(err)
         return []
@@ -44,16 +47,32 @@ def write_txt(title: str, content: str):
 
 def collect_and_write(links_list: list):
     """
+    Collects congrats texts and titles, writes them in txt file with write_txt
     :param links_list: list with links to congrats texts and titles
     """
-    for link in links_list:
+    start_from = 0
+    with open('config.json') as config_handler:
+        curr_config = json.load(config_handler)
+    if curr_config["last_index"] != 0:
+        start_from = curr_config["last_index"]
+        links_list = links_list[start_from:]
+
+    for index, link in enumerate(links_list):
         letter = False
         try:
             letter = urlopen(link)
+            time.sleep(2)
         except urllib.error.HTTPError as err:
             print(traceback.format_exc())
             logging.error(err, )
+
         if letter:
+            curr_config['last_index'] = index + start_from
+            if index == (len(links_list) - 1):
+                curr_config['last_index'] = 0
+            with open('config.json', 'w') as config_writer:
+                json.dump(curr_config, config_writer)
+
             parced_letter = bs(letter, 'html.parser')
             if parced_letter.find('div', 'read__place p-location').text == 'Поздравления':
                 title = parced_letter.find('h1', 'entry-title p-name').text
@@ -63,12 +82,20 @@ def collect_and_write(links_list: list):
             pass
 
 if __name__=='__main__':
-    page_num = 1
+
+    with open('config.json') as config_handler:
+        curr_config = json.load(config_handler)
+        page_num = curr_config['last_page']
+
     my_links = collect_urls(page_num)
-    # TODO добавить сохранялку страницы и документа, слип на 403 ошибках
     while my_links:
         collect_and_write(my_links)
-        page_num += 1
+
+        curr_config['last_page'] += 1
+        page_num = curr_config['last_page']
+        with open('config.json', 'w') as config_writer:
+            json.dump(curr_config, config_writer)
+
         my_links = collect_urls(page_num)
         if page_num > 2:
             break
