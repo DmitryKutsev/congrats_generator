@@ -3,7 +3,6 @@ import json
 import traceback
 import urllib
 import time
-from typing import Any
 from urllib.request import urlopen
 from bs4 import BeautifulSoup as bs
 import logging
@@ -37,7 +36,7 @@ def write_txt(title: str, content: str):
     Help function for collect_and_write().
     Writes parced data in txt file separated by TITLE, CONTENT and END strings.
     """
-    with open('congrats.txt', 'a') as my_handler:
+    with open('curr_congrats.txt', 'a') as my_handler:
         my_handler.write('\nTITLE\n')
         my_handler.write(title)
         my_handler.write('\nCONTENT\n')
