@@ -1,6 +1,6 @@
-from flask.ext.wtf import Form
-from wtforms import TextField
-from wtforms.validators import Required
+from flask_wtf import FlaskForm
+from wtforms import Form, StringField, validators
 
-class PersonForm(Form):
-    openid = TextField('openid', validators = [Required()])
+
+class PersonForm(FlaskForm):
+    persone_name = StringField(u'Full Name', [validators.length(min=3)])

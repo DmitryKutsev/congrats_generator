@@ -1,4 +1,5 @@
 <!doctype html>
+
 <title>{% block title %}{% endblock %} My app henlo</title>
 
 <section class="content">
@@ -6,11 +7,19 @@
     {% block header %}{% endblock %}
   </header>
   {% block content %}
-  <form action="" method="post" name="congrats">
-    <p>
-        A person to be congratulated by mr Putin:<br>
-    </p>
-    <p><input type="submit" value="Sign In"></p>
+  <form action="/" method="post" name="/">
+    {{ form.csrf_token }}
+    {{ form.hidden_tag() }}
+    <p>A person to be congratulated by mr Putin:<br></p>
+    {{form.persone_name(size=80)}}
+    <p><input type="submit" value="Make congratulation"></p>
   </form>
+    {% if content %}
+      <p>{{content}}</p>
+        <ul class="congrats">
+          {% for congrat in form.content%}
+            <li>{{ congrat }}</li>
+          {% endfor %}</ul>
+    {% endif %}
   {% endblock %}
 </section>
