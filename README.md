@@ -13,7 +13,7 @@ Web crawler is located in _congrats_generator/crawler_ directory.
 # Stages to build and start up the generator:
 
 * Clone this repository into your local machine.
- [Learn more about git clone](https://git-scm.com/docs/git-clone)
+  * [Learn more about git clone](https://git-scm.com/docs/git-clone)
 
 * Make directory for the model and specify model and tokenizer path in 
 _congrats_generator/crawler/config.json_. 
@@ -24,11 +24,11 @@ services which allow the app to be more scalable further.
 You can use _docker-compose build_ command to build 
 your app, and _docker-compose up_ to start the app.
 
-[Docker run reference](https://docs.docker.com/engine/reference/run/)
+   * [Docker run reference](https://docs.docker.com/engine/reference/run/)
 
-[Docker-compose](https://docs.docker.com/compose/reference/)
+   * [Docker-compose](https://docs.docker.com/compose/reference/)
 
-[Docker-compose build](https://docs.docker.com/compose/reference/build/)
+   * [Docker-compose build](https://docs.docker.com/compose/reference/build/)
 
-[Docker-compose up](https://docs.docker.com/compose/reference/up/)
+   * [Docker-compose up](https://docs.docker.com/compose/reference/up/)
 
