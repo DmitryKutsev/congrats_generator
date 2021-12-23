@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import Form, StringField, validators
+from wtforms import StringField, validators
 
 
 class PersonForm(FlaskForm):

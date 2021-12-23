@@ -1,0 +1,8 @@
+flask
+torch
+torchvision
+torchaudio
+wtforms
+flask_wtf
+transformers
+gunicorn

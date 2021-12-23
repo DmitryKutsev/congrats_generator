@@ -1,0 +1,12 @@
+FROM python:3.8
+MAINTAINER Dmitry Kutsev <dakutsev@gmail.com>
+
+COPY requirements.txt requirements.txt
+RUN pip install -r requirements.txt
+
+COPY . .
+# CMD ["python", "start_app.py"]
+# CMD ["gunicorn", "-b", "0.0.0.0:8000", "start_app.py"]
+# CMD ["gunicorn", "-b", "0.0.0.0:8000", "--access-logfile", "start_app:create_app()"]
+CMD gunicorn -b 0.0.0.0:8000 --timeout 1000 --workers=1 "start_app:starrt()"
+# CMD["gunicorn", "--timeout", "1000", "--workers=1","-b", "0.0.0.0:8000","--log-level", "debug", "manage"]

@@ -11,7 +11,7 @@ class Generator:
     def __init__(self):
         self.tokenizer = GPT2Tokenizer.from_pretrained("sberbank-ai/rugpt3small_based_on_gpt2")
         self.speech_generator = pipeline('text-generation',
-                               model='./models/gpt3_22.12',
+                               model='./models/gpt3_22.12-2',
                                tokenizer=self.tokenizer,
                                max_length=500)
 
