@@ -2,5 +2,6 @@
   "CRAWL_TEXT_PATH": "crawler/curr_congrats.txt",
   "TRAIN_DATA_PATH":  "data/train.txt",
   "TEST_DATA_PATH":  "data/test.txt",
-  "VALID_DATA_PATH":  "data/valid.txt"
+  "VALID_DATA_PATH":  "data/valid.txt",
+  "TRAIN_TEST_RATIO": 0.9
 }

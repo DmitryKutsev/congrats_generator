@@ -9,11 +9,12 @@ import os
 import luigi
 import pandas as pd
 import torch
+from sklearn.model_selection import train_test_split
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 import gzip
 import argparse
 
-from congrats_generator.utils import make_pandas_df, make_masked_col
+from congrats_generator.utils import make_pandas_df, make_masked_col, build_dataset
 
 
 class PrepareTexts(luigi.Task):
@@ -25,18 +26,11 @@ class PrepareTexts(luigi.Task):
     start = luigi.Parameter(time.time())
     my_mask = luigi.Parameter(False)
 
-    def __init__(self, *args, my_mask=False, config_path='training_config.json', **kwargs):
-        self.config = json.load(open('training_config.json'))
+    def __init__(self, *args, my_mask=False, config_path='data_config.json', **kwargs):
+        self.config = json.load(open(config_path))
         self.mask = my_mask
         super().__init__(*args, **kwargs)
 
-
-    def output(self):
-        config = self.config
-        target_1 = luigi.LocalTarget(config['TRAIN_DATA_PATH'])
-        target_2 = luigi.LocalTarget(config['TEST_DATA_PATH'])
-
-        return target_1 and target_2
 
     def run(self):
         config = self.config
@@ -49,6 +43,11 @@ class PrepareTexts(luigi.Task):
             my_df = make_masked_col(my_df)
         my_df['Sum'] = [my_df['Title'].tolist()[i] + my_df['Content'].tolist()[i]
                         for i in range(len(my_df))]
+
+        train_test_ratio = config['TRAIN_TEST_RATIO']
+        df_train, df_test = train_test_split(my_df, train_size=train_test_ratio, random_state=1)
+        build_dataset(df_train, config['TEST_DATA_PATH'])
+        build_dataset(df_test, config['TRAIN_DATA_PATH'])
 
 
 class LoadAndTrain(luigi.Task):

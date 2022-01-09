@@ -1,3 +1,5 @@
+import re
+
 import pandas as pd
 from natasha import (
     MorphVocab,
@@ -11,7 +13,8 @@ from natasha import (
     ORG
 )
 from transformers import TextDataset, DataCollatorForLanguageModeling
-from sklearn.model_selection import train_test_split
+
+
 
 def make_pandas_df(full_text: str) -> pd.core.frame.DataFrame:
     """
@@ -32,8 +35,8 @@ def make_pandas_df(full_text: str) -> pd.core.frame.DataFrame:
         data = {'Title': titles_list,
                 'Content': congrats_list}
 
-        my_df = pd.DataFrame(data)
-        return my_df
+    my_df = pd.DataFrame(data)
+    return my_df
 
 
 def make_masked_col(my_df: pd.core.frame.DataFrame) -> pd.core.frame.DataFrame:
@@ -63,9 +66,30 @@ def make_masked_col(my_df: pd.core.frame.DataFrame) -> pd.core.frame.DataFrame:
     return my_df
 
 
-def clean_and_split_data(my_df):
-    train_test_ratio = 0.9
-    df_train, df_test = train_test_split(my_df, train_size=train_test_ratio, random_state=1)
+
+
+def build_dataset(df, dest_path):
+    """
+    Help function for PrepareTexts step in training_pipeline.
+    Cleans and splits data, builds data set
+    """
+    f = open(dest_path, 'w')
+    data = ''
+    summaries = df['Sum'].tolist()
+
+    for summary in summaries:
+        summary = str(summary).strip()
+        summary = re.sub(r"\s", " ", summary)
+        summary = re.sub(r"\n", "", summary)
+        summary = re.sub(r"Статус материала Опубликован в разделе: Телеграммы", "", summary)
+        summary = re.sub(r"Ссылка на материал:", "", summary)
+        summary = re.sub(r"Текстовая версия:", "", summary)
+        summary = re.sub(r"Ссылка на материал:", "", summary)
+        summary = re.sub(r"([a-zA-Z]+)", "", summary)
+        summary = re.sub(r"([0-9/*#@+]+)", "", summary)
+        data += summary
+
+        f.write(data)
 
 
 def load_dataset(train_path, test_path, tokenizer):
