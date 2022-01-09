@@ -10,7 +10,8 @@ from natasha import (
     Doc,
     ORG
 )
-
+from transformers import TextDataset, DataCollatorForLanguageModeling
+from sklearn.model_selection import train_test_split
 
 def make_pandas_df(full_text: str) -> pd.core.frame.DataFrame:
     """
@@ -60,3 +61,25 @@ def make_masked_col(my_df: pd.core.frame.DataFrame) -> pd.core.frame.DataFrame:
 
     my_df['Content'] = masked_content
     return my_df
+
+
+def clean_and_split_data(my_df):
+    train_test_ratio = 0.9
+    df_train, df_test = train_test_split(my_df, train_size=train_test_ratio, random_state=1)
+
+
+def load_dataset(train_path, test_path, tokenizer):
+    train_dataset = TextDataset(
+        tokenizer=tokenizer,
+        file_path=train_path,
+        block_size=128)
+
+    test_dataset = TextDataset(
+        tokenizer=tokenizer,
+        file_path=test_path,
+        block_size=128)
+
+    data_collator = DataCollatorForLanguageModeling(
+        tokenizer=tokenizer, mlm=False,
+    )
+    return train_dataset, test_dataset, data_collator

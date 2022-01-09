@@ -1,24 +1,15 @@
 
 import shutil
-import luigi
+
 import pickle
 import json
 from string import punctuation
-import time, os
+import time
+import os
+import luigi
 import pandas as pd
 import torch
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
-from natasha import (
-    MorphVocab,
-    NewsNERTagger,
-    NamesExtractor,
-    MorphVocab,
-    Segmenter,
-    NewsEmbedding,
-    PER,
-    Doc,
-    ORG
-)
 import gzip
 import argparse
 
@@ -26,20 +17,26 @@ from congrats_generator.utils import make_pandas_df, make_masked_col
 
 
 class PrepareTexts(luigi.Task):
+    """
+    Prepare parced texts for converting into training data set objects.
+    Make train.txt and test.txt files.
+    """
 
-    config = luigi.Parameter(json.load(open('training_config.json.json')))
-    mask = luigi.Parameter(default=False)
     start = luigi.Parameter(time.time())
+    my_mask = luigi.Parameter(False)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, my_mask=False, config_path='training_config.json', **kwargs):
+        self.config = json.load(open('training_config.json'))
+        self.mask = my_mask
         super().__init__(*args, **kwargs)
 
 
     def output(self):
         config = self.config
-        target_1 = config['TRAIN_DATA_PATH']
-        target_2 = config['TEST_DATA_PATH']
-        return True if luigi.LocalTarget(target_1) and luigi.LocalTarget(target_2) else False
+        target_1 = luigi.LocalTarget(config['TRAIN_DATA_PATH'])
+        target_2 = luigi.LocalTarget(config['TEST_DATA_PATH'])
+
+        return target_1 and target_2
 
     def run(self):
         config = self.config
@@ -54,6 +51,15 @@ class PrepareTexts(luigi.Task):
                         for i in range(len(my_df))]
 
 
+class LoadAndTrain(luigi.Task):
+    """
+    Load data set into objects for training. Train and save model.
+    """
+    def output(self):
+        pass
+
+    def run(self):
+        pass
 
 
 if __name__ == '__main__':
@@ -69,11 +75,11 @@ if __name__ == '__main__':
 
 
     args = my_parser.parse_args()
-    mask = args.mask if args.mask else False
+    mask = args.mask
 
     luigi.build([
-                    PrepareTexts(luigi.Task, mask=mask)
+                    PrepareTexts(luigi.Task, my_mask=mask)
                 ],
                 detailed_summary=True,
-                scheduler_port=8082,
-                scheduler_host='localhost')
+                local_scheduler=True,
+    )
