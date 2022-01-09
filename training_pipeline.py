@@ -55,21 +55,19 @@ class LoadAndTrain(luigi.Task):
     """
 
     start = luigi.Parameter(time.time())
-    my_version = luigi.Parameter('1')
 
-    def __init__(self, *args, my_version='1', data_config_path='data_config.json',
+    def __init__(self, *args, data_config_path='data_config.json',
                  train_config_path='training_config.json', **kwargs):
         self.train_config = json.load(open(train_config_path))
         self.data_config = json.load(open(data_config_path))
-        self.my_version = my_version
         super().__init__(*args, **kwargs)
 
     def output(self):
         pass
 
     def run(self):
-        train_path = self.data_config['TRAIN_PATH']
-        test_path = self.data_config['TEST_PATH']
+        train_path = self.data_config['TRAIN_DATA_PATH']
+        test_path = self.data_config['TEST_DATA_PATH']
         pretrained_model = self.train_config['PRETRAINED_MODEL']
         output_dir_path = self.train_config['SAVE_DIR_PATH']
         tokenizer = GPT2LMHeadModel.from_pretrained(pretrained_model)
@@ -90,20 +88,21 @@ if __name__ == '__main__':
                            help='If we want to replace Named Entities with MASK string, '
                                 'set this parameter to mask=True. It has mask=False value by default')
 
-    my_parser.add_argument('-version',
-                           metavar='ver',
-                           type=bool,
-                           required=True,
-                           help='Version of model you train')
+    # my_parser.add_argument('-version',
+    #                        metavar='ver',
+    #                        type=bool,
+    #                        required=True,
+    #                        help='Version of model you train')
 
 
 
     args = my_parser.parse_args()
     mask = args.mask
-    curr_version = args.ver
+    # curr_version = args.ver
 
     luigi.build([
-                    PrepareTexts(luigi.Task, my_mask=mask)
+                    PrepareTexts(my_mask=mask),
+                    LoadAndTrain()
                 ],
                 detailed_summary=True,
                 local_scheduler=True,
