@@ -14,7 +14,7 @@ from transformers import GPT2LMHeadModel, GPT2Tokenizer
 import gzip
 import argparse
 
-from congrats_generator.utils import make_pandas_df, make_masked_col, build_dataset
+from congrats_generator.utils import make_pandas_df, make_masked_col, build_dataset, load_dataset, my_train
 
 
 class PrepareTexts(luigi.Task):
@@ -41,11 +41,10 @@ class PrepareTexts(luigi.Task):
         my_df = make_pandas_df(full_text)
         if self.mask:
             my_df = make_masked_col(my_df)
-        my_df['Sum'] = [my_df['Title'].tolist()[i] + my_df['Content'].tolist()[i]
-                        for i in range(len(my_df))]
 
         train_test_ratio = config['TRAIN_TEST_RATIO']
-        df_train, df_test = train_test_split(my_df, train_size=train_test_ratio, random_state=1)
+        random_state = config['RANDOM_STATE']
+        df_train, df_test = train_test_split(my_df, train_size=train_test_ratio, random_state=random_state)
         build_dataset(df_train, config['TEST_DATA_PATH'])
         build_dataset(df_test, config['TRAIN_DATA_PATH'])
 
@@ -54,11 +53,30 @@ class LoadAndTrain(luigi.Task):
     """
     Load data set into objects for training. Train and save model.
     """
+
+    start = luigi.Parameter(time.time())
+    my_version = luigi.Parameter('1')
+
+    def __init__(self, *args, my_version='1', data_config_path='data_config.json',
+                 train_config_path='training_config.json', **kwargs):
+        self.train_config = json.load(open(train_config_path))
+        self.data_config = json.load(open(data_config_path))
+        self.my_version = my_version
+        super().__init__(*args, **kwargs)
+
     def output(self):
         pass
 
     def run(self):
-        pass
+        train_path = self.data_config['TRAIN_PATH']
+        test_path = self.data_config['TEST_PATH']
+        pretrained_model = self.train_config['PRETRAINED_MODEL']
+        output_dir_path = self.train_config['SAVE_DIR_PATH']
+        tokenizer = GPT2LMHeadModel.from_pretrained(pretrained_model)
+
+        train_dataset, test_dataset, data_collator = load_dataset(train_path, test_path, tokenizer)
+        trainer = my_train(train_dataset, test_dataset, data_collator, output_dir_path)
+        trainer.save_model()
 
 
 if __name__ == '__main__':
@@ -72,9 +90,17 @@ if __name__ == '__main__':
                            help='If we want to replace Named Entities with MASK string, '
                                 'set this parameter to mask=True. It has mask=False value by default')
 
+    my_parser.add_argument('-version',
+                           metavar='ver',
+                           type=bool,
+                           required=True,
+                           help='Version of model you train')
+
+
 
     args = my_parser.parse_args()
     mask = args.mask
+    curr_version = args.ver
 
     luigi.build([
                     PrepareTexts(luigi.Task, my_mask=mask)

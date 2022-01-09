@@ -1,0 +1,6 @@
+{
+  "PRETRAINED_MODEL": "sberbank-ai/rugpt3small_based_on_gpt2",
+  "MODEL_OUTPUT_DIR":  "congrats_generator/my_app/models/",
+  "TRAIN_EPOCHS":  1,
+  "SAVE_DIR_PATH":  "data/valid.txt"
+}

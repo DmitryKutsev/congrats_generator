@@ -3,5 +3,6 @@
   "TRAIN_DATA_PATH":  "data/train.txt",
   "TEST_DATA_PATH":  "data/test.txt",
   "VALID_DATA_PATH":  "data/valid.txt",
-  "TRAIN_TEST_RATIO": 0.9
+  "TRAIN_TEST_RATIO": 0.9,
+  "RANDOM_STATE": 1
 }

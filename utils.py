@@ -12,8 +12,8 @@ from natasha import (
     Doc,
     ORG
 )
-from transformers import TextDataset, DataCollatorForLanguageModeling
-
+from transformers import (TextDataset, DataCollatorForLanguageModeling,
+                          GPT2LMHeadModel, TrainingArguments, Trainer, PreTrainedTokenizerBase)
 
 
 def make_pandas_df(full_text: str) -> pd.core.frame.DataFrame:
@@ -36,6 +36,7 @@ def make_pandas_df(full_text: str) -> pd.core.frame.DataFrame:
                 'Content': congrats_list}
 
     my_df = pd.DataFrame(data)
+    my_df['Sum'] = [my_df['Title'].tolist()[i] + my_df['Content'].tolist()[i] for i in range(len(my_df))]
     return my_df
 
 
@@ -51,27 +52,25 @@ def make_masked_col(my_df: pd.core.frame.DataFrame) -> pd.core.frame.DataFrame:
     segmenter = Segmenter()
     masked_content = []
 
-    for sent in my_df['Content']:
-      doc = Doc(sent)
-      doc.segment(segmenter)
-      doc.tag_ner(ner_tagger)
+    for sent in my_df['Sum']:
+        doc = Doc(sent)
+        doc.segment(segmenter)
+        doc.tag_ner(ner_tagger)
 
-      for span in doc.spans:
-          if span.type == PER or span.type == ORG:
-              sent = sent.replace(span.text, 'MASK')
+        for span in doc.spans:
+            if span.type == PER or span.type == ORG:
+                sent = sent.replace(span.text, 'MASK')
 
-      masked_content.append(sent)
+        masked_content.append(sent)
 
-    my_df['Content'] = masked_content
+    my_df['Sum'] = masked_content
     return my_df
 
 
-
-
-def build_dataset(df, dest_path):
+def build_dataset(df: pd.core.frame.DataFrame, dest_path: str):
     """
     Help function for PrepareTexts step in training_pipeline.
-    Cleans and splits data, builds data set
+    Cleans and splits data, builds data set.
     """
     f = open(dest_path, 'w')
     data = ''
@@ -92,7 +91,12 @@ def build_dataset(df, dest_path):
         f.write(data)
 
 
-def load_dataset(train_path, test_path, tokenizer):
+def load_dataset(train_path: str, test_path: str, tokenizer: PreTrainedTokenizerBase) -> tuple:
+    """
+    Help function for LoadAndTrain step in training_pipeline.
+    Makes TextDataset objects for test and train.
+    """
+
     train_dataset = TextDataset(
         tokenizer=tokenizer,
         file_path=train_path,
@@ -106,4 +110,38 @@ def load_dataset(train_path, test_path, tokenizer):
     data_collator = DataCollatorForLanguageModeling(
         tokenizer=tokenizer, mlm=False,
     )
+
     return train_dataset, test_dataset, data_collator
+
+
+def my_train(train_dataset: TextDataset, test_dataset: TextDataset,
+             data_collator: DataCollatorForLanguageModeling, output_dir_path: str) -> Trainer:
+    """
+    Help function for LoadAndTrain step in training_pipeline.
+    Trains model.
+    """
+    model = GPT2LMHeadModel.from_pretrained("sberbank-ai/rugpt3small_based_on_gpt2")
+
+    training_args = TrainingArguments(
+        output_dir=output_dir_path,
+        overwrite_output_dir=True,
+        # num_train_epochs=3,
+        # per_device_train_batch_size=32,
+        # per_device_eval_batch_size=64,
+        num_train_epochs=40,
+        per_device_train_batch_size=64,
+        per_device_eval_batch_size=32,
+        eval_steps=400,
+        save_steps=150,
+        warmup_steps=500,
+        prediction_loss_only=True,
+    )
+
+    trainer = Trainer(
+        model=model,
+        args=training_args,
+        data_collator=data_collator,
+        train_dataset=train_dataset,
+        eval_dataset=test_dataset,
+    )
+    return trainer
