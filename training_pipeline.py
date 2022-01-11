@@ -54,9 +54,6 @@ class LoadAndTrain(luigi.Task):
         self.data_config = json.load(open(data_config_path))
         super().__init__(*args, **kwargs)
 
-    def output(self):
-        pass
-
     def run(self):
         train_path = self.data_config['TRAIN_DATA_PATH']
         test_path = self.data_config['TEST_DATA_PATH']
@@ -85,7 +82,7 @@ if __name__ == '__main__':
 
     luigi.build([
                     PrepareTexts(my_mask=True),
-                    # LoadAndTrain()
+                    LoadAndTrain()
                 ],
                 detailed_summary=True,
                 local_scheduler=True,

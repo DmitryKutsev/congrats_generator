@@ -6,7 +6,7 @@ import configparser
 
 class Generator:
     """
-    Class for congratulations generation. Handles model specifyed in config.
+    Class for congratulations generation. Handles model specified in config.
     """
 
     def __init__(self):

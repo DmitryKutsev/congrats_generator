@@ -3,11 +3,6 @@ version: '3'
 services:
   web:
     build: my_app
-#    command: >
-#      gunicorn -b 0.0.0.0:8000
-#        --access-logfile -
-#        --reload
-#        "start_app:starrt()"
     environment:
       PYTHONUNBUFFERED: 'true'
     volumes:

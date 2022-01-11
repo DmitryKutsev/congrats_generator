@@ -6,4 +6,3 @@ RUN pip install -r requirements.txt
 
 COPY . .
 CMD gunicorn -b 0.0.0.0:8000 --timeout 1000 --reload --workers=1 "start_app:start()"
-# CMD["gunicorn", "--timeout", "1000", "--workers=1","-b", "0.0.0.0:8000","--log-level", "debug", "manage"]
