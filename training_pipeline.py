@@ -1,20 +1,12 @@
 
-import shutil
-
-import pickle
 import json
-from string import punctuation
 import time
-import os
 import luigi
-import pandas as pd
-import torch
 from sklearn.model_selection import train_test_split
-from transformers import GPT2LMHeadModel, GPT2Tokenizer
-import gzip
+from transformers import GPT2Tokenizer
 import argparse
-
-from congrats_generator.utils import make_pandas_df, make_masked_col, build_dataset, load_dataset, my_train
+from congrats_generator.utils import (make_pandas_df, make_masked_col,
+                                      build_dataset, load_dataset, my_train)
 
 
 class PrepareTexts(luigi.Task):
@@ -70,7 +62,7 @@ class LoadAndTrain(luigi.Task):
         test_path = self.data_config['TEST_DATA_PATH']
         pretrained_model = self.train_config['PRETRAINED_MODEL']
         output_dir_path = self.train_config['SAVE_DIR_PATH']
-        tokenizer = GPT2LMHeadModel.from_pretrained(pretrained_model)
+        tokenizer = GPT2Tokenizer.from_pretrained(pretrained_model)
 
         train_dataset, test_dataset, data_collator = load_dataset(train_path, test_path, tokenizer)
         trainer = my_train(train_dataset, test_dataset, data_collator, output_dir_path)
@@ -88,21 +80,12 @@ if __name__ == '__main__':
                            help='If we want to replace Named Entities with MASK string, '
                                 'set this parameter to mask=True. It has mask=False value by default')
 
-    # my_parser.add_argument('-version',
-    #                        metavar='ver',
-    #                        type=bool,
-    #                        required=True,
-    #                        help='Version of model you train')
-
-
-
     args = my_parser.parse_args()
     mask = args.mask
-    # curr_version = args.ver
 
     luigi.build([
-                    PrepareTexts(my_mask=mask),
-                    LoadAndTrain()
+                    PrepareTexts(my_mask=True),
+                    # LoadAndTrain()
                 ],
                 detailed_summary=True,
                 local_scheduler=True,

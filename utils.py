@@ -84,8 +84,10 @@ def build_dataset(df: pd.core.frame.DataFrame, dest_path: str):
         summary = re.sub(r"Ссылка на материал:", "", summary)
         summary = re.sub(r"Текстовая версия:", "", summary)
         summary = re.sub(r"Ссылка на материал:", "", summary)
+        summary = re.sub(r"(MASK)", "МАСК", summary)
         summary = re.sub(r"([a-zA-Z]+)", "", summary)
         summary = re.sub(r"([0-9/*#@+]+)", "", summary)
+        summary = re.sub(r"(МАСК)", "MASK", summary)
         data += summary
 
         f.write(data)
@@ -125,9 +127,6 @@ def my_train(train_dataset: TextDataset, test_dataset: TextDataset,
     training_args = TrainingArguments(
         output_dir=output_dir_path,
         overwrite_output_dir=True,
-        # num_train_epochs=3,
-        # per_device_train_batch_size=32,
-        # per_device_eval_batch_size=64,
         num_train_epochs=40,
         per_device_train_batch_size=64,
         per_device_eval_batch_size=32,
